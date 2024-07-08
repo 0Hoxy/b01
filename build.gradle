@@ -50,13 +50,12 @@ def querydslDir = "src/main/java"
 
 sourceSets {
     main.java.srcDirs += [querydslDir]
-    test {
-        java {
-            srcDirs = ['src/test/java']
-        }
-    }
+
 }
 
 tasks.withType(JavaCompile).configureEach {
     options.getGeneratedSourceOutputDirectory().set(file(querydslDir))
+}
+test {
+    useJUnitPlatform()
 }
