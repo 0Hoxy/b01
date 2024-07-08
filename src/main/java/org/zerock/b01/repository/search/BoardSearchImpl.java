@@ -31,7 +31,6 @@ public class BoardSearchImpl extends QuerydslRepositorySupport implements BoardS
 
         long count = query.fetchCount();
 
-
         return null;
 
     }
