@@ -56,6 +56,6 @@ sourceSets {
 tasks.withType(JavaCompile).configureEach {
     options.getGeneratedSourceOutputDirectory().set(file(querydslDir))
 }
-test {
+tasks.named('test') {
     useJUnitPlatform()
 }
