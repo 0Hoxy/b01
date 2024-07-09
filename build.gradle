@@ -1,9 +1,14 @@
+//buildscript는 상단에 위치해야하고 plugins 위에 있어야함
+buildscript {
+    ext{
+        queryDslVersion = "5.0.0"
+    }
+}
 plugins {
     id 'java'
     id 'org.springframework.boot' version '3.2.5'
     id 'io.spring.dependency-management' version '1.1.4'
 }
-
 group = 'org.zerock'
 version = '0.0.1-SNAPSHOT'
 
@@ -44,18 +49,13 @@ dependencies {
 tasks.named('test') {
     useJUnitPlatform()
 }
-/**
-/*QueryDSL Build Options (Q파일 위치 설정)*/
-def querydslDir = "src/main/java"
 
 sourceSets {
-    main.java.srcDirs += [querydslDir]
+    main{
+        java{
+//            프로젝트 이름을 붙히면 경로 오류가 뜬다.
+            srcDirs = ["src/main/java", "build/generated"]
+        }
+    }
 
-}
-
-tasks.withType(JavaCompile).configureEach {
-    options.getGeneratedSourceOutputDirectory().set(file(querydslDir))
-}
-tasks.named('test') {
-    useJUnitPlatform()
 }

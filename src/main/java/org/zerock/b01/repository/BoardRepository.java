@@ -14,4 +14,6 @@ public interface BoardRepository extends JpaRepository<Board, Long>, BoardSearch
     //Page<Board> findByTitleContainingOrderByBnoDesc(String keyword, Pageable pageable);
     //@Query("select b from Board b where b.title like concat('%',:keyword,'%')")
     //Page<Board> findKeyword(String keyword, Pageable pageable);
+    @Query(value = "select now()", nativeQuery = true)
+    String getTime();
 }
