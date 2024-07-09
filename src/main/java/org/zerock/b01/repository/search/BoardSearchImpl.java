@@ -3,6 +3,7 @@ package org.zerock.b01.repository.search;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.JPQLQuery;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.support.QuerydslRepositorySupport;
 import org.zerock.b01.domain.Board;
@@ -61,6 +62,9 @@ public class BoardSearchImpl extends QuerydslRepositorySupport implements BoardS
                 this.getQuerydsl().applyPagination(pageable, query);
                 List<Board> list = query.fetch();
                 long count = query.fetchCount();
-                return null;
+                // 페이징 처리의 최종 결과는 Page<T> 타입을 반환하는 것이므로 Querydsl에서는 이를 직접 처리해야 하는 불편함이 있습니다.
+                // Spring Data JPA에서는 이를처리를 위해서 PageImpl이라는 클래스를 제공해서 3개의 파라미터로 Page<T>를 생성할 수 있습니다.
+                return new PageImpl<Board>(list, pageable, count);
+
     }
 }
