@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="description" content=""/>
+    <meta name="author" content=""/>
+    <!--Favicon-->
+    <link rel="icon" type="image/x-icon" th:href="@{/assets/favicon.ico}"/>
+    <!-- Core theme CSS (includes Bootstrap)-->
+    <link rel="stylesheet" th:href="@{/css/styles.css}"/>
+    <title>Login Page</title>
+</head>
+<body class="align-middle">
+<div class="card-header">
+    LOGIN Page
+</div>
+<div class="card-body">
+    <th:block th:if="${param.logout != null}">
+        <h1>Logout..........</h1>
+    </th:block>
+    <form action="/member/login" method="post" id="registerForm" th:if="${param.logout == null}">
+        <div class="input-group mb-3">
+            <span class="input-group-text">아이디</span>
+            <input type="text" class="form-control" name="username" placeholder="USER ID">
+        </div>
+        <div class="input-group mb-3">
+            <span class="input-group-text">패스워드</span>
+            <input type="text" name="password" class="form-control" placeholder="PASSWORD">
+        </div>
+        <div class="input-group mb-3">
+            <input type="checkbox" class="form-check-input" name="remember-me">
+            <label class="form-check-label">
+                자동 로그인
+            </label>
+        </div>
+        <div class="my-4">
+            <div class="float-end">
+                <button type="submit" class="btn btn-primary submitBtn">LOGIN</button>
+            </div>
+        </div>
+    </form>
+</div>
+</body>
+</html>

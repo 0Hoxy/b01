@@ -42,7 +42,7 @@ public class PageRequestDTO {
     private String link;
 
     public String getLink() {
-        if (link == null || link.isEmpty()) {
+        if (link == null) {
             StringBuilder builder = new StringBuilder();
 
             builder.append("page=" + this.page);

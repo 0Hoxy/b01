@@ -8,9 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.zerock.b01.domain.Board;
-import org.zerock.b01.dto.BoardDTO;
-import org.zerock.b01.dto.PageRequestDTO;
-import org.zerock.b01.dto.PageResponseDTO;
+import org.zerock.b01.dto.*;
 import org.zerock.b01.repository.BoardRepository;
 
 import java.util.List;
@@ -21,44 +19,47 @@ import java.util.stream.Collectors;
 @Log4j2
 @RequiredArgsConstructor
 @Transactional
-public class BoardServiceImpl implements BoardService {
-
-    //@Autowired보다 final 권장, 의존성이 명확히 드러나고 컴파일 시점에 의존성 누락을 체크할 수 있다.
-    // 큰 규모의 프로젝트나 장기적인 유지보수가 필요한 경우, 테스트 주도 개발(TDD)을 하는 경우, 불변성과 스레드 안전성이 중요한 경우 적합하다
-    // 결론적으로 작은 프로젝트나 프로토타입개발을 할때, 빠른 개발이 필요할때는 @Autowired의 사용이 적합하므로 안정성이 좋은 final을 사용해라
+public class BoardServiceImpl implements BoardService{
+    //롬복의 require생성자 사용해서 생성자 주입
     private final ModelMapper modelMapper;
-
     private final BoardRepository boardRepository;
 
+    //새 게시글 등록 메서드 리턴(글번호)
     @Override
     public Long register(BoardDTO boardDTO) {
-        Board board = modelMapper.map(boardDTO, Board.class);
+
+        Board board = dtoToEntity(boardDTO);
 
         Long bno = boardRepository.save(board).getBno();
 
         return bno;
     }
 
+    //이미지가 포함된 게시물 조회
     @Override
     public BoardDTO readOne(Long bno) {
-        Optional<Board> result = boardRepository.findById(bno);
-
+        Optional<Board> result = boardRepository.findByIdWithImages(bno);
         Board board = result.orElseThrow();
-
-        BoardDTO boardDTO = modelMapper.map(board, BoardDTO.class);
-
+        BoardDTO boardDTO = entityToDto(board);
         return boardDTO;
     }
 
     @Override
     public void modify(BoardDTO boardDTO) {
+        //먼저 수정할 board 데이터 가져오기
         Optional<Board> result = boardRepository.findById(boardDTO.getBno());
-
         Board board = result.orElseThrow();
-
+        //보드의 change메서드로 업데이트함
         board.change(boardDTO.getTitle(), boardDTO.getContent());
-
-        boardRepository.save(board);
+        //첨부파일 처리
+        board.clearImages(); //전부 삭제
+        if(boardDTO.getFileNames() != null){
+            for(String filename : boardDTO.getFileNames()){
+                String[] arr = filename.split("_");
+                board.addImage(arr[0], arr[1]);
+            }
+        }
+        boardRepository.save(board); //저장하기
     }
 
     @Override
@@ -68,22 +69,52 @@ public class BoardServiceImpl implements BoardService {
 
     @Override
     public PageResponseDTO<BoardDTO> list(PageRequestDTO pageRequestDTO) {
+
+        String[] types = pageRequestDTO.getTypes();
+        String keyword = pageRequestDTO.getKeyword();
+        Pageable pageable = pageRequestDTO.getPageable("bno");
+        //검색어로 조건에 맞게 검색
+        Page<Board> result = boardRepository.searchAll(types, keyword, pageable);
+        //DTO 변환
+        List<BoardDTO> dtoList = result.getContent().stream()
+                .map(board -> modelMapper.map(board, BoardDTO.class))
+                .collect(Collectors.toList()); //stream 을 리스트로 변환
+        //화면표시를 위한 객체를 만듬
+        return PageResponseDTO.<BoardDTO>withAll()
+                .pageRequestDTO(pageRequestDTO)
+                .dtoList(dtoList)
+                .total((int)result.getTotalElements())
+                .build();
+    }
+
+    @Override
+    public PageResponseDTO<BoardListReplyCountDTO> listWithReplyCount(PageRequestDTO pageRequestDTO) {
         String[] types = pageRequestDTO.getTypes();
         String keyword = pageRequestDTO.getKeyword();
         Pageable pageable = pageRequestDTO.getPageable("bno");
 
-        Page<Board> result = boardRepository.searchAll(types, keyword, pageable);
+        Page<BoardListReplyCountDTO> result = boardRepository.
+                searchWithReplyCount(types,keyword,pageable);
 
-        List<BoardDTO> dtoList = result.getContent().stream()
-                .map(board -> modelMapper.map(board, BoardDTO.class))
-                .collect(Collectors.toList());
-
-        return PageResponseDTO.<BoardDTO>withAll()
+        return PageResponseDTO.<BoardListReplyCountDTO>withAll()
                 .pageRequestDTO(pageRequestDTO)
-                .dtoList(dtoList)
-                .total((int) result.getTotalElements())
+                .dtoList(result.getContent())
+                .total((int)result.getTotalElements())
                 .build();
     }
 
+    @Override
+    public PageResponseDTO<BoardListAllDTO> listWithAll(PageRequestDTO pageRequestDTO) {
+        String[] types = pageRequestDTO.getTypes();
+        String keyword = pageRequestDTO.getKeyword();
+        Pageable pageable = pageRequestDTO.getPageable("bno");
 
+        Page<BoardListAllDTO> result = boardRepository.searchWithAll(types,keyword,pageable);
+
+        return PageResponseDTO.<BoardListAllDTO>withAll()
+                .pageRequestDTO(pageRequestDTO)
+                .dtoList(result.getContent())
+                .total((int)result.getTotalElements())
+                .build();
+    }
 }

@@ -1,11 +1,14 @@
 package org.zerock.b01.dto;
 
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @Builder
@@ -15,13 +18,19 @@ public class BoardDTO {
 
     private Long bno;
 
+    @NotEmpty
+    @Size(min = 3, max = 100)
     private String title;
 
+    @NotEmpty
     private String content;
 
+    @NotEmpty
     private String writer;
 
     private LocalDateTime regDate;
 
     private LocalDateTime modDate;
+
+    private List<String> fileNames; //BoardDTO의 List<String> fileNames는 Board에서 Set<BoardImage>타입으로 변환 되어야만 한다.
 }
